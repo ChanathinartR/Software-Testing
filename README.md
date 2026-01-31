@@ -8,6 +8,6 @@ White Box Testing
 Test Procedure Specification
 
 
-Unit Testing
+[Unit Testing](https://github.com/ChanathinartR/Software-Testing/blob/main/test_bmi.ipynb)
 
 Manual Testing
