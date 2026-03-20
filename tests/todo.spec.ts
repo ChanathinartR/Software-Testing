@@ -1,18 +1,37 @@
 import { test, expect } from '@playwright/test';
+import { TodoPage } from '../pages/todo-page';
 
-test('test', async ({ page }) => {
-  await page.goto('https://demo.playwright.dev/todomvc/#/');
-  await page.getByRole('textbox', { name: 'What needs to be done?' }).click();
-  await page.getByRole('heading', { name: 'todos' }).click();
-  await page.getByRole('textbox', { name: 'What needs to be done?' }).fill('read a book');
-  await page.getByRole('textbox', { name: 'What needs to be done?' }).press('Enter');
-  await page.getByText('This is just a demo of TodoMVC for testing, not the real TodoMVC app. todosMark').click();
-  await page.getByRole('textbox', { name: 'What needs to be done?' }).click();
-  await page.getByRole('textbox', { name: 'What needs to be done?' }).press('Enter');
-  await page.getByRole('link', { name: 'Active' }).click();
-  await page.getByRole('link', { name: 'Active' }).click();
-  await page.getByRole('link', { name: 'All' }).click();
-  await page.getByRole('link', { name: 'Completed' }).click();
-  await page.getByRole('link', { name: 'Completed' }).click();
-  await page.getByText('Mark all as complete').click();
+test.describe('แบบฝึกหัดที่ 4 — Page Object Model', () => {
+  let todoPage: TodoPage;
+
+  test.beforeEach(async ({ page }) => {
+    todoPage = new TodoPage(page);
+    await todoPage.goto();
+    // เพิ่มข้อมูลพื้นฐานสำหรับ Test case ที่ 2 และ 3
+    await todoPage.addTodo('reading');
+    await todoPage.addTodo('cooking');
+    await todoPage.addTodo('eating');
+  });
+
+  test('เพิ่ม Todo item ใหม่ 3 รายการ แล้วตรวจสอบว่ามีครบ 3 รายการ', async ({ page }) => {
+    // ตรวจสอบจำนวนรายการโดยใช้ locator จากหน้าเว็บโดยตรง
+    await expect(page.getByTestId('todo-item')).toHaveCount(3);
+  });
+
+  test('Mark Todo item รายการที่ 2 เป็น Completed แล้วตรวจสอบว่ามี class "completed"', async ({ page }) => {
+    await todoPage.markAsCompleted('cooking');
+    
+    // ตรวจสอบว่ารายการ 'cooking' มี class 'completed' หรือไม่
+    const secondItem = page.getByRole('listitem').filter({ hasText: 'cooking' });
+    await expect(secondItem).toHaveClass(/completed/);
+  });
+
+  test('ลบ Todo item รายการแรกแล้วตรวจสอบว่าเหลือ 2 รายการ', async ({ page }) => {
+    await todoPage.deleteTodo('reading');
+    
+    // ตรวจสอบว่าจำนวนรายการลดลงเหลือ 2
+    await expect(page.getByTestId('todo-item')).toHaveCount(2);
+    // ตรวจสอบให้แน่ใจว่า 'reading' หายไปจริงๆ
+    await expect(page.getByText('reading')).not.toBeVisible();
+  });
 });
